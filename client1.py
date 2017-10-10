@@ -20,7 +20,7 @@ class Client:
             c, addr = s.accept()
             print('Got connection from')
             print(addr)
-            c.sendall('Thank you for connecting'.encode())
+            c.send('Thank you for connecting'.encode())
             c.close()
 
     print(s.recv(1024))
