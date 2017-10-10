@@ -4,12 +4,12 @@ from multiprocessing import Queue
 
 class Client:
     s = socket()
-    def _init__ (self):
-        sethostname('Ash')
+   def _init_ (self, name, port):
+        self.name=name
+        sethostname(name)
         numofLikes = 0
         host = gethostname()
-        port = 12345
-        Queue.PriorityQueue
+        self.port = port
 
     def connection(self):
         s.connect((host, port))
@@ -22,6 +22,7 @@ class Client:
             print(addr)
             c.send('Thank you for connecting'.encode())
             c.close()
+            
     def printValue():
         print(s.recv(1024))
     s.close()
