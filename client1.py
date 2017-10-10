@@ -22,6 +22,6 @@ class Client:
             print(addr)
             c.send('Thank you for connecting'.encode())
             c.close()
-
-    print(s.recv(1024))
+    def printValue():
+        print(s.recv(1024))
     s.close()
