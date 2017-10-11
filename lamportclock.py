@@ -1,7 +1,7 @@
 import threading
 
 class LamportClock:
-    def _init_ self:
+    def _init_ (self):
         self.lock = threading.Lock()
         self.time = 0
 
