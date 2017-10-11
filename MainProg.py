@@ -1,13 +1,5 @@
 import config
 
-# try:
-#     with open("config.txt") as f:
-#         lines = f.readlines()
-#     max_instances =  int(lines[0].split(' ')[1])
-# except Exception, e:
-#     print "Exception while opening config.txt :",
-#     exit(1)
-
 c1 = config.client1
 c2 = config.client2
 c3 = config.client3
