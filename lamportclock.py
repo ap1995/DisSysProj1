@@ -9,18 +9,18 @@ class LamportClock:
     def _init_ (self, processID, queue):
         self.lock = threading.Lock()
         self.time = 0
-        self.processID = processID
-        self.queue = queue
+        # self.processID = processID
+        # self.queue = queue
 
     def addtoRequestQueue(self, queue, item):
-        self.queue.put(item)
+        queue.put(item)
         # self.queue.put(("S" + str(self.processID)), self.processID)
 
-    def removefromRequestQ(self):
-        return self.queue.pop()
+    def removefromRequestQ(self, queue):
+        return queue.get()
 
-    def printRequestQ(self):
-        q1= self.queue
+    def printRequestQ(self, queue):
+        q1= queue
         while q1.qsize() != 0:
             print(q1.get())
 
