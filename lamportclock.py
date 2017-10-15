@@ -1,11 +1,30 @@
 import threading
+import time
+
+from multiprocessing import Queue
+
+
 
 class LamportClock:
-    def _init_ (self):
+    def _init_ (self, processID, queue):
         self.lock = threading.Lock()
         self.time = 0
+        self.processID = processID
+        self.queue = queue
 
-    def increment(self):
+    def addtoRequestQueue(self, queue, item):
+        self.queue.put(item)
+        # self.queue.put(("S" + str(self.processID)), self.processID)
+
+    def removefromRequestQ(self):
+        return self.queue.pop()
+
+    def printRequestQ(self):
+        q1= self.queue
+        while q1.qsize() != 0:
+            print(q1.get())
+
+    def incrementTime(self):
         self.lock.acquire()
         try:
             self.time = self.time +1
@@ -18,6 +37,17 @@ class LamportClock:
             return self.time
         finally:
             self.lock.release()
+
+    """def getTotallyOrderedTime(self):
+        self.lock.acquire()
+        try:
+            return (self.time+'.'+other.time+'.'+self.processID)
+        finally:
+            self.lock.release()
+            """
+
+    # def addToQueue(self, port):
+    #     PriorityQueue.put(port, int(port)-4000)
 
     def compareTime(self, other):
         self.lock.acquire()
