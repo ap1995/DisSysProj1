@@ -36,13 +36,12 @@ class Client:
         self.processID = int(self.port) - 4000
         self.hostname = gethostname()
         # self.reqQueue = PriorityQueue
-        self.reqQueue = PriorityQueue()
+        self.reqQueue = []
         self.lc = lamportclock.LamportClock(time, self.processID, self.reqQueue)
         self.replyList = []
 
         self.s = socket(AF_INET, SOCK_STREAM)
         # self.connectToAll()
-
         start_new_thread(self.startListening, ())
         start_new_thread(self.awaitInput, ())
         # time.sleep(configdata["delay"])
@@ -53,7 +52,7 @@ class Client:
         # while True:
             print('Message received from Client at port '+ str(addr[1]))
             msg = conn.recv(1024).decode()
-
+            time.sleep(2)
             if "release" in msg:
                 removed = self.removefromRequestQ(self.reqQueue)
                 self.lc.incrementTime()
@@ -62,6 +61,8 @@ class Client:
                 if msg[-4:] not in seen:
                     seen.add(msg[-4:])
                     self.replyList.append(msg[-4:])
+                print("Reply list is ")
+                self.printReplyList(self.replyList)
             if "Add" in msg:
                 self.addtoRequestQueue(self.reqQueue, "S"+str(msg[-1:]))
                 self.lc.incrementTime()
@@ -82,29 +83,34 @@ class Client:
                 systemName = "S"+ str(self.processID)
                 self.addtoRequestQueue(self.reqQueue, systemName)
 
-
                 print("My request Queue")
                 self.printRequestQ(self.reqQueue)
                 print("Over")
                 self.lc.incrementTime()
-
+                time.sleep(5)
                 addMessage = "Add to queue " + str(self.port)
                 self.sendToAll(addMessage)# Add to all request Queues
                 self.printRequestQ(self.reqQueue)
+                time.sleep(5)
                 qcopy = self.reqQueue
-                topofQ = self.removefromRequestQ
 
-
-                if topofQ == ("S"+str(self.processID)) and len(self.replyList)==3:
+                topofQ = self.removefromRequestQ(qcopy)[1]
+                print("Top of Queue is " + str(topofQ))
+                time.sleep(5)
+                if topofQ == ("S"+str(self.processID)):
+                    # and len(self.replyList)==3:
+                    
                     sm.numofLikes = sm.numofLikes + 1
                     self.numofLikes = sm.numofLikes
                     tosend = "Post: \n" + str(sm.string1) + "\nCurrent like count " + str(sm.numofLikes)
                     print(tosend)
+                    self.sendToAll(tosend)
+                    time.sleep(5)
                     releaseMessage = "Resource release message from port " + str(self.port)
                     self.sendToAll(releaseMessage)
                 else:
-                    if(not self.reqQueue.empty()):
-                     self.sendReply(configdata["systems"][topofQ][1])
+                    # if len(self.reqQueue) !=0:
+                    self.sendReply(configdata["systems"][self.removefromRequestQ(self.reqQueue)[1]][1])
 
             # else:
             #     print('Invalid input')
@@ -124,6 +130,7 @@ class Client:
                 conn = c
                 print('Got connection from')
                 print(addr)
+                time.sleep(5)
                 start_new_thread(self.receiveMessages, (conn, addr)) # connection dictionary
                 # c.close()
         except(gaierror):
@@ -152,16 +159,9 @@ class Client:
                 cSocket.connect((gethostname(), port))
                 print('Connected to port number ' + configdata["systems"][i][1])
                 cSocket.send(message.encode())
+                time.sleep(5)
                 print('Message sent to Client at port '+ str(port))
                 self.lc.incrementTime()
-                # if option ==0:
-                #
-                #     cSocket.send(message.encode())
-                #     cSocket.close()
-                #     # Add to request q option
-                # if option == 1:
-                #
-                #     cSocket.send(releaseMessage)
                 cSocket.close()
 
     def addtoRequestQueue(self, reqQueue, item):
@@ -176,9 +176,16 @@ class Client:
 
     def printRequestQ(self, queue):
         q1 = queue
-        while queue.qsize() !=0:
-            print(heappop(queue))
+        print("Current Request Queue is")
+        # while len(q1) !=0:
+        #     print(heappop(q1))
+        for i in q1:
+            print(i)
             # print(q1.get())
+
+    def printReplyList(self, rlist):
+        for i in rlist:
+            print(i)
 
 
     def closeSocket(self):
@@ -189,7 +196,7 @@ class Client:
 with open('config.json') as configfile:
     configdata = json.load(configfile)
 
-sm = socialmedia.Socialmedia
+sm = socialmedia.Socialmedia()
 delay = configdata["delay"]
 ID = sys.argv[1]
 # lc = lamportclock.LamportClock(int(ID[-1:]))
