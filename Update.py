@@ -39,7 +39,7 @@ class Client:
         self.reqQueue = []
         self.lc = lamportclock.LamportClock(time, self.processID, self.reqQueue)
         self.replyList = []
-
+        self.lock = threading.Lock()
         self.s = socket(AF_INET, SOCK_STREAM)
         # self.connectToAll()
         start_new_thread(self.startListening, ())
@@ -99,7 +99,7 @@ class Client:
                 time.sleep(5)
                 if topofQ == ("S"+str(self.processID)):
                     # and len(self.replyList)==3:
-                    
+                    self.lock.acquire()
                     sm.numofLikes = sm.numofLikes + 1
                     self.numofLikes = sm.numofLikes
                     tosend = "Post: \n" + str(sm.string1) + "\nCurrent like count " + str(sm.numofLikes)
@@ -108,9 +108,10 @@ class Client:
                     time.sleep(5)
                     releaseMessage = "Resource release message from port " + str(self.port)
                     self.sendToAll(releaseMessage)
-                else:
+                    self.lock.release()
+            else:
                     # if len(self.reqQueue) !=0:
-                    self.sendReply(configdata["systems"][self.removefromRequestQ(self.reqQueue)[1]][1])
+                self.sendReply(configdata["systems"][self.removefromRequestQ(self.reqQueue)[1]][1])
 
             # else:
             #     print('Invalid input')
