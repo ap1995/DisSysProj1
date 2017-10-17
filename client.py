@@ -48,7 +48,8 @@ class Client:
             time.sleep(delay)
             if "release" in msg:
                 removed = self.removefromRequestQ(self.reqQueue)
-
+                print("Current Lamport time " + self.lc.getLamportTime())
+                self.lc.incrementTime()
                 self.printRequestQ(self.reqQueue)
                 print("Enter 1 to like: ")
                 # self.lc.incrementTime()
@@ -70,6 +71,7 @@ class Client:
 
                 self.addtoRequestQueue(self.reqQueue, float(ltime), "S"+str(port[-1:]))
                 ltime = ltime[0]
+                self.lc.incrementTime()
                 self.lc.compareTime(int(ltime))
                 print("Current Lamport time " + self.lc.getLamportTime())
                 self.sendReply(configdata["systems"]["S"+str(port[-1:])][1])
@@ -112,13 +114,14 @@ class Client:
 
         systemName = "S" + str(self.processID)
         # self.lock.acquire()
+
         lamporttime = float(self.lc.getLamportTime())
         self.addtoRequestQueue(self.reqQueue, lamporttime, systemName)
 
         print("My request Queue")
         self.printRequestQ(self.reqQueue)
         print("Over")
-        # self.lc.incrementTime()
+
         time.sleep(delay)
         addMessage = "Add to queue " + str(self.port) + " " + str(lamporttime)
         print(addMessage)
