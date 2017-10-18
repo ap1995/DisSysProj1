@@ -13,8 +13,6 @@ import time
 import sys
 import lamportclock
 
-# To connect to the other client/server
-
 class Client:
     hostname = ''
     port = 0
@@ -35,6 +33,7 @@ class Client:
         self.replyList = []
         self.lock = threading.RLock()
         self.s = socket(AF_INET, SOCK_STREAM)
+        print("Post: \n" + str(sm.post) + "\nCurrent like count " + str(sm.numofLikes))
         start_new_thread(self.startListening, ())
         start_new_thread(self.awaitInput, ())
 
@@ -42,7 +41,6 @@ class Client:
             pass
 
     def receiveMessages(self, conn, addr):
-            print('Message received from Client at port '+ str(addr[1]))
             msg = conn.recv(1024).decode()
             time.sleep(delay)
             if "release" in msg:
@@ -54,7 +52,7 @@ class Client:
             if "Reply" in msg:
                 lamtime = msg.split()[3]
                 lamtime = lamtime[0]
-                seen = set(self.replyList) # Checking for duplicate replies if any
+                seen = set(self.replyList)  # Checking for duplicate replies if any
                 if msg.split()[2] not in seen:
                     seen.add(msg.split()[2])
                     self.replyList.append(msg.split()[2])
@@ -65,7 +63,6 @@ class Client:
             if "Add" in msg:
                 port = msg.split()[3]
                 ltime = msg.split()[4]
-
                 self.addtoRequestQueue(self.reqQueue, float(ltime), "S"+str(port[-1:]))
                 ltime = ltime[0]
                 self.lc.incrementTime()
@@ -78,33 +75,27 @@ class Client:
                 sm.numofLikes = int(likes)
             print(msg)
 
-
     def awaitInput(self):
         while True:
             message = input('Enter 1 to like: ')
             message = int(message)
             if (message == 1):
                 start_new_thread(self.whenLiked, ())
-            # else:
-            #     print('Invalid input')
+            else:
+                print('Invalid input')
 
     def whenLiked(self):
 
         systemName = "S" + str(self.processID)
-        # self.lock.acquire()
-
         lamporttime = float(self.lc.getLamportTime())
         self.addtoRequestQueue(self.reqQueue, lamporttime, systemName)
-
         self.printRequestQ(self.reqQueue)
-
         time.sleep(delay)
-        addMessage = "Add to queue " + str(self.port) + " " + str(lamporttime)
+        addMessage = "Added to queue " + str(self.port) + " " + str(lamporttime)
         print(addMessage)
         self.sendToAll(addMessage)  # Add to all request Queues
         self.printRequestQ(self.reqQueue)
         time.sleep(delay)
-
         topofQ = self.reqQueue[0][1]
         print("Top of Queue is " + str(topofQ))
 
@@ -113,14 +104,12 @@ class Client:
             if topofQ == ("S" + str(self.processID)) and len(self.replyList) == 3:
                 break
             else:
-                self.printRequestQ(self.reqQueue)
                 time.sleep(delay)
 
         time.sleep(delay)
-
         self.lock.acquire(sm.numofLikes)
         sm.numofLikes = sm.numofLikes + 1
-        tosend = "Post: \n" + str(sm.string1) + "\nCurrent like count " + str(sm.numofLikes)
+        tosend = "Post: \n" + str(sm.post) + "\nCurrent like count " + str(sm.numofLikes)
         print(tosend)
         self.sendToAll(tosend)
         time.sleep(delay)
@@ -155,7 +144,7 @@ class Client:
         print("Sent reply to port " + str(port))
         rSocket.close()
 
-# To send updated likes to everyone
+# To send messages to everyone
     def sendToAll(self, message):
         for i in configdata["systems"]:
             if (configdata["systems"][i][1] == self.port):
@@ -176,7 +165,6 @@ class Client:
 
     def removefromRequestQ(self, queue):
         return heappop(queue)
-        # return queue.get()
 
     def printRequestQ(self, queue):
         print("Current Request Queue is")
@@ -187,7 +175,6 @@ class Client:
     def printReplyList(self, rlist):
         for i in rlist:
             print(i)
-
 
     def closeSocket(self):
         self.s.close()
