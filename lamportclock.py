@@ -1,6 +1,4 @@
 class LamportClock:
-    time = 0
-    processID = 0
     def __init__(self, time, processID, queue):
         self.time = 1
         self.processID = processID
